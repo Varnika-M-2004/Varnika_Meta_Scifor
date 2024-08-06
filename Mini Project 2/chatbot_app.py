@@ -30,6 +30,8 @@ st.markdown(
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 # Set up and define the Google Gemini AI model
+GOOGLE_API_KEY = st.secrets["gemini"]["api_key"]
+# Initialize the Google API key
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
