@@ -3,8 +3,15 @@ from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import os
 
-# Load the environment variables
+# Load the environment variables (optional, for local testing)
 load_dotenv()
+
+# Initialize the Google API key from Streamlit secrets
+GOOGLE_API_KEY = st.secrets["gemini"]["api_key"]
+
+# Set up and define the Google Gemini AI model
+gen_ai.configure(api_key=GOOGLE_API_KEY)
+model = gen_ai.GenerativeModel('gemini-pro')
 
 # Configure Streamlit page settings
 st.set_page_config(
@@ -28,13 +35,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
-# Initialize the Google API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
-# Set up and define the Google Gemini AI model
-gen_ai.configure(api_key=GOOGLE_API_KEY)
-model = gen_ai.GenerativeModel('gemini-pro')
 
 # Initialize the chat session and welcome message in session state
 if "chat_session" not in st.session_state:
