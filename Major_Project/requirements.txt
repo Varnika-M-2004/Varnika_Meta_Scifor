@@ -1,0 +1,12 @@
+streamlit
+python-dotenv
+google-generativeai
+SpeechRecognition
+gTTS
+pydub
+pyaudio
+google-auth
+speechrecognition
+gtts
+playsound
+
