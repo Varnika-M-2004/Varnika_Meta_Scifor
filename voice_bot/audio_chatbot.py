@@ -25,6 +25,46 @@ GOOGLE_API_KEY = st.secrets["google"]["api_key"]
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
+# Configure Streamlit page settings
+st.set_page_config(
+    page_title="Gemini Voice Chatbot",
+    layout="centered",
+    page_icon="🧠"
+)
+
+# Apply custom CSS for styling
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #FAF3E0; /* Warmer background color */
+    }
+    .title {
+        color: lightskyblue; /* Lighter text color */
+        font-size: 45px;
+        text-align: center;
+        font-family: verdana;
+    }
+    .user-message {
+        background-color: #cce5ff; /* Light blue background for user messages */
+        color: #003366; /* Dark blue text color */
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    .assistant-message {
+        background-color: #e6ffe6; /* Light green background for assistant messages */
+        color: #004d00; /* Dark green text color */
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+    }
+    </style>
+    <h1><p class="title">🤔<b><i> Gemini AI Voice Chatbot</i></b> 🤔</p></h1>
+    """,
+    unsafe_allow_html=True
+)
+
 # Initialize the chat session and welcome message in session state
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
