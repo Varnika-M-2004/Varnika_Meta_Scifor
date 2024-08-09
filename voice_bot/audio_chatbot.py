@@ -16,9 +16,6 @@ ffprobe_path = r"C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffprobe.exe"
 AudioSegment.ffmpeg = ffmpeg_path
 AudioSegment.ffprobe = ffprobe_path
 
-# Load the environment variables
-load_dotenv()
-
 # Configure Streamlit page settings
 st.set_page_config(
     page_title="Gemini Voice Chatbot",
@@ -59,8 +56,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize the Google API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# Initialize the Google API key using Streamlit secrets
+GOOGLE_API_KEY = st.secrets["google"]["api_key"]
 
 # Set up and define the Google Gemini AI model
 gen_ai.configure(api_key=GOOGLE_API_KEY)
