@@ -2,18 +2,10 @@ import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import os
-import speech_recognition as sr
-from gtts import gTTS
-from pydub import AudioSegment
-from pydub.playback import play
-
-# Set paths explicitly
-ffmpeg_path = r"C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffmpeg.exe"
-ffprobe_path = r"C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffprobe.exe"
-
-# Set paths directly in pydub
-AudioSegment.ffmpeg = ffmpeg_path
-AudioSegment.ffprobe = ffprobe_path
+from audio_recorder_streamlit import audio_recorder
+import io
+import base64
+from google.cloud import speech_v1p1beta1 as speech
 
 # Load the environment variables
 load_dotenv()
@@ -65,6 +57,18 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
+# Initialize Google Cloud Speech-to-Text client
+def transcribe_audio(audio_data):
+    client = speech.SpeechClient()
+    audio = speech.RecognitionAudio(content=audio_data)
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=16000,
+        language_code="en-US",
+    )
+    response = client.recognize(config=config, audio=audio)
+    return response.results[0].alternatives[0].transcript if response.results else ""
+
 # Initialize the chat session and welcome message in session state
 if "chat_session" not in st.session_state:
     st.session_state.chat_session = model.start_chat(history=[])
@@ -86,58 +90,29 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
     # Print the welcome message first
     st.markdown(f'<div class="assistant-message">{welcome_message}</div>', unsafe_allow_html=True)
 
-    # Play the welcome message
-    tts = gTTS(text=welcome_message, lang='en')
-    file_path = "response.mp3"
-    try:
-        tts.save(file_path)
-        audio = AudioSegment.from_mp3(file_path)
-        play(audio)
-    except PermissionError:
-        st.write("Permission denied: unable to save or access 'response.mp3'.")
-    except Exception as e:
-        st.write(f"An error occurred: {e}")
-    
-    # Append the welcome message after playing it
+    # Append the welcome message after displaying it
     st.session_state.messages.append({"role": "assistant", "content": welcome_message})
     st.session_state.first_interaction = False
     st.session_state.welcome_displayed = True
 
 # Voice input button
-if st.button("Talk to Gemini"):
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.write("Listening...")
-        audio_data = r.listen(source)
-        try:
-            # Recognize speech using Google Speech Recognition
-            user_prompt = r.recognize_google(audio_data)
-            st.write(f"You said: {user_prompt}")
-            
-            # Add user's question to chat and display it
-            st.session_state.messages.append({"role": "user", "content": user_prompt})
-            st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
+st.write("Record your message:")
+audio_data = audio_recorder()
 
-            # Send user's question to Gemini-Pro and get answer
-            gemini_answer = st.session_state.chat_session.send_message(user_prompt)
+if audio_data:
+    st.write("Processing audio...")
+    # Convert audio to base64 and pass to Google Cloud Speech-to-Text
+    audio_bytes = base64.b64decode(audio_data)
+    user_prompt = transcribe_audio(audio_bytes)
+    st.write(f"You said: {user_prompt}")
+    
+    # Add user's question to chat and display it
+    st.session_state.messages.append({"role": "user", "content": user_prompt})
+    st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
 
-            # Display and voice the answer
-            st.session_state.messages.append({"role": "assistant", "content": gemini_answer.text})
-            st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
+    # Send user's question to Gemini-Pro and get answer
+    gemini_answer = st.session_state.chat_session.send_message(user_prompt)
 
-            # Generate and play voice response for the latest message only
-            tts = gTTS(text=gemini_answer.text, lang='en')
-            file_path = "response.mp3"
-            try:
-                tts.save(file_path)
-                audio = AudioSegment.from_mp3(file_path)
-                play(audio)
-            except PermissionError:
-                st.write("Permission denied: unable to save or access 'response.mp3'.")
-            except Exception as e:
-                st.write(f"An error occurred: {e}")
-
-        except sr.UnknownValueError:
-            st.write("Sorry, I did not understand that.")
-        except sr.RequestError:
-            st.write("Sorry, the service is unavailable at the moment.")
+    # Display the answer
+    st.session_state.messages.append({"role": "assistant", "content": gemini_answer.text})
+    st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
