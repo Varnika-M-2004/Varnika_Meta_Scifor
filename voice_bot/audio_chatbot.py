@@ -6,6 +6,8 @@ from audio_recorder_streamlit import audio_recorder
 import io
 import base64
 from google.cloud import speech_v1p1beta1 as speech
+from gtts import gTTS
+import tempfile
 
 # Load the environment variables
 load_dotenv()
@@ -90,6 +92,12 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
     # Print the welcome message first
     st.markdown(f'<div class="assistant-message">{welcome_message}</div>', unsafe_allow_html=True)
 
+    # Generate and play welcome message audio
+    tts = gTTS(text=welcome_message, lang='en')
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+        tts.save(temp_file.name)
+        st.audio(temp_file.name, format="audio/mp3")
+    
     # Append the welcome message after displaying it
     st.session_state.messages.append({"role": "assistant", "content": welcome_message})
     st.session_state.first_interaction = False
@@ -113,6 +121,12 @@ if audio_data:
     # Send user's question to Gemini-Pro and get answer
     gemini_answer = st.session_state.chat_session.send_message(user_prompt)
 
-    # Display the answer
+    # Display and voice the answer
     st.session_state.messages.append({"role": "assistant", "content": gemini_answer.text})
     st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
+
+    # Generate and play answer audio
+    tts = gTTS(text=gemini_answer.text, lang='en')
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
+        tts.save(temp_file.name)
+        st.audio(temp_file.name, format="audio/mp3")
