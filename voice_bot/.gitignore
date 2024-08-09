@@ -1,0 +1,8 @@
+# .gitignore
+
+# Exclude response.mp3
+response.mp3
+
+# Exclude .env file
+.env
+
