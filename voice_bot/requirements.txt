@@ -1,9 +1,6 @@
 streamlit
 python-dotenv
 google-generativeai
-SpeechRecognition
+audio_recorder_streamlit
+google-cloud-speech
 gTTS
-pydub
-pyaudio
-google-auth
-playsound
