@@ -7,14 +7,6 @@ from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
 
-# Set paths explicitly
-ffmpeg_path = r"C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffmpeg.exe"
-ffprobe_path = r"C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffprobe.exe"
-
-# Set paths directly in pydub
-AudioSegment.ffmpeg = ffmpeg_path
-AudioSegment.ffprobe = ffprobe_path
-
 # Load the environment variables
 load_dotenv()
 
