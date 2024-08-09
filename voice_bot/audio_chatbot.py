@@ -83,8 +83,11 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
     file_path = "response.mp3"
     try:
         tts.save(file_path)
-        audio = AudioSegment.from_mp3(file_path)
-        play(audio)
+        try:
+            audio = AudioSegment.from_mp3(file_path)
+            play(audio)
+        except Exception as e:
+            st.write(f"An error occurred while playing the audio: {e}")
     except PermissionError:
         st.write("Permission denied: unable to save or access 'response.mp3'.")
     except Exception as e:
@@ -122,8 +125,11 @@ if st.button("Talk to Gemini"):
             file_path = "response.mp3"
             try:
                 tts.save(file_path)
-                audio = AudioSegment.from_mp3(file_path)
-                play(audio)
+                try:
+                    audio = AudioSegment.from_mp3(file_path)
+                    play(audio)
+                except Exception as e:
+                    st.write(f"An error occurred while playing the audio: {e}")
             except PermissionError:
                 st.write("Permission denied: unable to save or access 'response.mp3'.")
             except Exception as e:
