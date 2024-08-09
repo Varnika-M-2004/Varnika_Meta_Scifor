@@ -7,6 +7,10 @@ from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
 
+# Explicitly set the paths for ffmpeg and ffprobe
+AudioSegment.ffmpeg = "C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffmpeg.exe"
+AudioSegment.ffprobe = "C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffprobe.exe"
+
 # Load the environment variables
 load_dotenv()
 
@@ -83,13 +87,12 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
     file_path = "response.mp3"
     try:
         tts.save(file_path)
-        try:
-            audio = AudioSegment.from_mp3(file_path)
-            play(audio)
-        except Exception as e:
-            st.write(f"An error occurred while playing the audio: {e}")
+        audio = AudioSegment.from_mp3(file_path)
+        play(audio)
     except PermissionError:
         st.write("Permission denied: unable to save or access 'response.mp3'.")
+    except FileNotFoundError as e:
+        st.write(f"File not found: {e}")
     except Exception as e:
         st.write(f"An error occurred: {e}")
     
@@ -125,13 +128,12 @@ if st.button("Talk to Gemini"):
             file_path = "response.mp3"
             try:
                 tts.save(file_path)
-                try:
-                    audio = AudioSegment.from_mp3(file_path)
-                    play(audio)
-                except Exception as e:
-                    st.write(f"An error occurred while playing the audio: {e}")
+                audio = AudioSegment.from_mp3(file_path)
+                play(audio)
             except PermissionError:
                 st.write("Permission denied: unable to save or access 'response.mp3'.")
+            except FileNotFoundError as e:
+                st.write(f"File not found: {e}")
             except Exception as e:
                 st.write(f"An error occurred: {e}")
 
