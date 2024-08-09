@@ -2,11 +2,30 @@ import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import os
-import speech_recognition as sr
+import sounddevice as sd
+import numpy as np
+from scipy.io.wavfile import write
 from gtts import gTTS
 from pydub import AudioSegment
 from pydub.playback import play
 import tempfile
+
+# Set up paths for ffmpeg and ffprobe
+AudioSegment.converter = "C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffmpeg.exe"
+AudioSegment.ffmpeg = "C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffmpeg.exe"
+AudioSegment.ffprobe = "C:/Users/Varnika Mulay/Downloads/ffmpeg/bin/ffprobe.exe"
+
+# Initialize sounddevice for audio input/output
+def record_audio(duration=5, samplerate=44100):
+    st.write("Recording...")
+    audio_data = sd.rec(int(duration * samplerate), samplerate=samplerate, channels=2, dtype='int16')
+    sd.wait()
+    return audio_data, samplerate
+
+def save_audio_to_temp_file(audio_data, samplerate):
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmpfile:
+        write(tmpfile.name, samplerate, audio_data)
+        return tmpfile.name
 
 # Load the environment variables
 load_dotenv()
@@ -80,17 +99,12 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
     st.markdown(f'<div class="assistant-message">{welcome_message}</div>', unsafe_allow_html=True)
 
     # Play the welcome message
-    try:
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
-            tts = gTTS(text=welcome_message, lang='en')
-            tts.save(temp_file.name)
-            audio = AudioSegment.from_mp3(temp_file.name)
-            play(audio)
-    except PermissionError:
-        st.write("Permission denied: unable to save or access the audio file.")
-    except Exception as e:
-        st.write(f"An error occurred: {e}")
-    
+    tts = gTTS(text=welcome_message, lang='en')
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
+        tts.save(tmpfile.name)
+        audio = AudioSegment.from_mp3(tmpfile.name)
+        play(audio)
+
     # Append the welcome message after playing it
     st.session_state.messages.append({"role": "assistant", "content": welcome_message})
     st.session_state.first_interaction = False
@@ -98,39 +112,38 @@ if st.session_state.first_interaction and not st.session_state.welcome_displayed
 
 # Voice input button
 if st.button("Talk to Gemini"):
-    r = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.write("Listening...")
-        audio_data = r.listen(source)
-        try:
-            # Recognize speech using Google Speech Recognition
+    audio_data, samplerate = record_audio()
+    temp_audio_path = save_audio_to_temp_file(audio_data, samplerate)
+    
+    try:
+        # Recognize speech using Google Speech Recognition
+        r = sr.Recognizer()
+        with sr.AudioFile(temp_audio_path) as source:
+            audio_data = r.record(source)
             user_prompt = r.recognize_google(audio_data)
-            st.write(f"You said: {user_prompt}")
-            
-            # Add user's question to chat and display it
-            st.session_state.messages.append({"role": "user", "content": user_prompt})
-            st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
+        st.write(f"You said: {user_prompt}")
+        
+        # Add user's question to chat and display it
+        st.session_state.messages.append({"role": "user", "content": user_prompt})
+        st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
 
-            # Send user's question to Gemini-Pro and get answer
-            gemini_answer = st.session_state.chat_session.send_message(user_prompt)
+        # Send user's question to Gemini-Pro and get answer
+        gemini_answer = st.session_state.chat_session.send_message(user_prompt)
 
-            # Display and voice the answer
-            st.session_state.messages.append({"role": "assistant", "content": gemini_answer.text})
-            st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
+        # Display and voice the answer
+        st.session_state.messages.append({"role": "assistant", "content": gemini_answer.text})
+        st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
 
-            # Generate and play voice response for the latest message only
-            try:
-                with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as temp_file:
-                    tts = gTTS(text=gemini_answer.text, lang='en')
-                    tts.save(temp_file.name)
-                    audio = AudioSegment.from_mp3(temp_file.name)
-                    play(audio)
-            except PermissionError:
-                st.write("Permission denied: unable to save or access the audio file.")
-            except Exception as e:
-                st.write(f"An error occurred: {e}")
+        # Generate and play voice response for the latest message only
+        tts = gTTS(text=gemini_answer.text, lang='en')
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
+            tts.save(tmpfile.name)
+            audio = AudioSegment.from_mp3(tmpfile.name)
+            play(audio)
 
-        except sr.UnknownValueError:
-            st.write("Sorry, I did not understand that.")
-        except sr.RequestError:
-            st.write("Sorry, the service is unavailable at the moment.")
+    except sr.UnknownValueError:
+        st.write("Sorry, I did not understand that.")
+    except sr.RequestError:
+        st.write("Sorry, the service is unavailable at the moment.")
+    except Exception as e:
+        st.write(f"An error occurred: {e}")
