@@ -100,8 +100,11 @@ for role, text in st.session_state.conversation:
     else:
         st.markdown(f'<div class="assistant-message">{text}</div>', unsafe_allow_html=True)
 
+# Placeholder for mic button
+mic_placeholder = st.empty()
+
 # Voice input button
-audio_data = audio_recorder()
+audio_data = audio_recorder(key="audio_recorder")
 
 if audio_data:
     st.write("Processing audio...")
@@ -136,3 +139,6 @@ if audio_data:
             st.audio(response_audio, format="audio/mp3")
         except Exception as e:
             st.error(f"An error occurred: {e}")
+
+# Keep mic button visible by using placeholder
+mic_placeholder.audio_recorder()
