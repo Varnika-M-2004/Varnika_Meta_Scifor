@@ -58,8 +58,8 @@ def speech_to_text(audio_path):
         except sr.RequestError:
             return "Sorry, the service is unavailable at the moment."
 
-# Initialize the Google API key
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+# Initialize the Google API key from Streamlit secrets
+GOOGLE_API_KEY = st.secrets["GOOGLE_API_KEY"]
 
 # Set up and define the Google Gemini AI model
 gen_ai.configure(api_key=GOOGLE_API_KEY)
