@@ -100,45 +100,43 @@ for role, text in st.session_state.conversation:
     else:
         st.markdown(f'<div class="assistant-message">{text}</div>', unsafe_allow_html=True)
 
-# Placeholder for mic button
-mic_placeholder = st.empty()
+# Placeholder for audio recorder to keep it visible
+with st.empty() as mic_placeholder:
+    audio_data = audio_recorder()
 
-# Voice input button
-audio_data = audio_recorder(key="audio_recorder")
+    if audio_data:
+        st.write("Processing audio...")
 
-if audio_data:
-    st.write("Processing audio...")
+        with BytesIO(audio_data) as audio_file:
+            # Save audio data to a temporary file
+            temp_audio_path = "temp_audio.wav"
+            with open(temp_audio_path, "wb") as f:
+                f.write(audio_file.read())
 
-    with BytesIO(audio_data) as audio_file:
-        # Save audio data to a temporary file
-        temp_audio_path = "temp_audio.wav"
-        with open(temp_audio_path, "wb") as f:
-            f.write(audio_file.read())
+            user_prompt = speech_to_text(temp_audio_path)
 
-        user_prompt = speech_to_text(temp_audio_path)
+            # Add user's question to chat and display it
+            st.session_state.conversation.append(("user", user_prompt))
+            st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
 
-        # Add user's question to chat and display it
-        st.session_state.conversation.append(("user", user_prompt))
-        st.markdown(f'<div class="user-message">{user_prompt}</div>', unsafe_allow_html=True)
+            # Send user's question to Gemini-Pro and get answer
+            conversation_history = convert_history(st.session_state.conversation)
+            try:
+                chat_session = model.start_chat(history=conversation_history)
+                gemini_answer = chat_session.send_message(user_prompt)
 
-        # Send user's question to Gemini-Pro and get answer
-        conversation_history = convert_history(st.session_state.conversation)
-        try:
-            chat_session = model.start_chat(history=conversation_history)
-            gemini_answer = chat_session.send_message(user_prompt)
+                # Display and voice the answer
+                st.session_state.conversation.append(("model", gemini_answer.text))
+                st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
 
-            # Display and voice the answer
-            st.session_state.conversation.append(("model", gemini_answer.text))
-            st.markdown(f'<div class="assistant-message">{gemini_answer.text}</div>', unsafe_allow_html=True)
+                # Generate and play TTS response
+                tts_response = gTTS(text=gemini_answer.text, lang='en')
+                response_audio = BytesIO()
+                tts_response.write_to_fp(response_audio)
+                response_audio.seek(0)
+                st.audio(response_audio, format="audio/mp3")
+            except Exception as e:
+                st.error(f"An error occurred: {e}")
 
-            # Generate and play TTS response
-            tts_response = gTTS(text=gemini_answer.text, lang='en')
-            response_audio = BytesIO()
-            tts_response.write_to_fp(response_audio)
-            response_audio.seek(0)
-            st.audio(response_audio, format="audio/mp3")
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-
-# Keep mic button visible by using placeholder
-mic_placeholder.audio_recorder()
+# Ensure the microphone button stays visible by keeping the placeholder
+mic_placeholder.empty()
