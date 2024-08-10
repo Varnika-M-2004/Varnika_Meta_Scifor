@@ -88,8 +88,10 @@ if st.session_state.first_interaction:
     welcome_audio = BytesIO()
     tts_welcome.write_to_fp(welcome_audio)
     welcome_audio.seek(0)
-    st.audio(welcome_audio, format="audio/mp3")
     
+    # Play the welcome audio
+    st.audio(welcome_audio, format="audio/mp3")
+
     st.session_state.first_interaction = False
 
 # Display conversation history
