@@ -100,8 +100,8 @@ for role, text in st.session_state.conversation:
     else:
         st.markdown(f'<div class="assistant-message">{text}</div>', unsafe_allow_html=True)
 
-# Placeholder for audio recorder to keep it visible
-with st.empty() as mic_placeholder:
+# Use beta_expander to keep the microphone button visible
+with st.beta_expander("Audio Recorder", expanded=True):
     audio_data = audio_recorder()
 
     if audio_data:
@@ -137,6 +137,3 @@ with st.empty() as mic_placeholder:
                 st.audio(response_audio, format="audio/mp3")
             except Exception as e:
                 st.error(f"An error occurred: {e}")
-
-# Ensure the microphone button stays visible by keeping the placeholder
-mic_placeholder.empty()
