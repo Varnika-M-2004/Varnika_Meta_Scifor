@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import google.generativeai as gen_ai
 import os
 
-# Load the environment variables (optional, for local testing)
+# Load the environment variables
 load_dotenv()
 
 # Initialize the Google API key from Streamlit secrets
