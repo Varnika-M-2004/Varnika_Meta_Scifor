@@ -1,7 +1,6 @@
 import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as gen_ai
-import os
 import speech_recognition as sr
 from gtts import gTTS
 from io import BytesIO
