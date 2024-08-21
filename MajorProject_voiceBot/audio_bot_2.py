@@ -67,7 +67,7 @@ if "conversation" not in st.session_state:
     st.session_state.conversation = []
     st.session_state.first_interaction = True
 
-# Converting conversation history format
+# Converting chat history format
 def convert_history(history):
     converted = []
     for role, text in history:
@@ -77,7 +77,7 @@ def convert_history(history):
             converted.append({"parts": [{"text": text}], "role": "model"})
     return converted
 
-# Add the welcome message to conversation history if not already added
+# Adding the welcome message to conversation history if not already added
 if st.session_state.first_interaction:
     welcome_message = "Hello! Welcome to Gemini Chatbot! How may I help you today?"
     st.session_state.conversation.append(("model", welcome_message))
@@ -93,18 +93,18 @@ if st.session_state.first_interaction:
 
     st.session_state.first_interaction = False
 
-# Display conversation history
+# Displaying the conversation history
 for role, text in st.session_state.conversation:
     if role == "user":
         st.markdown(f'<div class="user-message">{text}</div>', unsafe_allow_html=True)
     else:
         st.markdown(f'<div class="assistant-message">{text}</div>', unsafe_allow_html=True)
 
-# Sidebar for microphone button
+# Creating a sidebar for microphone button
 with st.sidebar:
     audio_data = audio_recorder()
 
-# Process the audio data
+# Processing the audio data
 if audio_data:
     st.write("Processing audio...")
 
