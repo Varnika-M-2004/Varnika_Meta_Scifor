@@ -6,13 +6,13 @@ from gtts import gTTS
 from io import BytesIO
 from audio_recorder_streamlit import audio_recorder
 
-# Load environment variables
+# Loading environment variables 
 load_dotenv()
 
-# Configure Streamlit page settings
+# Configure page settings
 st.set_page_config(page_title="Gemini Voice Chatbot", layout="centered", page_icon="🧠")
 
-# Apply custom CSS for styling
+# Using custom CSS for designing the webpage
 st.markdown(
     """
     <style>
@@ -45,7 +45,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Define speech-to-text conversion
+# Create a speech-to-text conversion
 def speech_to_text(audio_path):
     r = sr.Recognizer()
     with sr.AudioFile(audio_path) as source:
@@ -57,17 +57,17 @@ def speech_to_text(audio_path):
         except sr.RequestError:
             return "Sorry, the service is unavailable at the moment."
 
-# Set up Google API key from Streamlit secrets
+# Setting up Google API key from Streamlit secrets
 GOOGLE_API_KEY = st.secrets["google"]["api_key"]
 gen_ai.configure(api_key=GOOGLE_API_KEY)
 model = gen_ai.GenerativeModel('gemini-pro')
 
-# Initialize session state for conversation history
+# Initializing a session state for conversation history
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
     st.session_state.first_interaction = True
 
-# Convert conversation history format
+# Converting conversation history format
 def convert_history(history):
     converted = []
     for role, text in history:
