@@ -52,8 +52,8 @@ def speech_to_text(audio_path):
         audio_data = r.record(source)
         try:
             return r.recognize_google(audio_data)
-        #except sr.UnknownValueError:
-            #return "Sorry, I did not understand that."
+        except sr.UnknownValueError:
+            return "Sorry, I did not understand that."
         except sr.RequestError:
             return "Sorry, the service is unavailable at the moment."
 
